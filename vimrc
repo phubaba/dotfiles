@@ -1,25 +1,68 @@
-set nocompatible             "use vim, not vi
-set nowrap                                         "do not wrap text
-set showmatch                 "display matching braces
-set hidden                                          " allow buffers to be hiden
-set bg=dark
-set ts=4
-set ruler
-syn on
- 
-set runtimepath+=~/.vim/bundle/Vundle.vim,~/.local/share/vim
+" Vim configuration file
+" Author: Jonathan Filip
+
+
+" ============================================================================
+" Setup:
+" ============================================================================
+
+set nocompatible
+
+" Set location so we can set variables accordingly
+let location = "home_osx"
+if exists("$CITADEL_ENV")
+    if has("win32") || has("win64")
+        let location="work_win"
+    else
+        let location="work_linux"
+    endif
+elseif has("win32") || has("win64")
+    let location="home_win"
+endif
+
+function! InLocation(...)
+    for l in a:000
+        if g:location == l
+            return 1
+        endif
+    endfor
+    return 0
+endfunction
+
+
+" ============================================================================
+" General Options:
+" ============================================================================
+
+set shortmess=flmnrxIstToO
+set showmode
+set history=1000
+set nofoldenable foldmethod=manual
+set browsedir=buffer
+set shellslash
+set hidden
+set tags=./tags;/.
+
+if has("gui_running")
+    set rtp+=$HOME\vimfiles\bundle\Vundle.vim\
+else
+    set rtp+=~/.vim/bundle/Vundle.vim,~/.local/share/vim
+endif
+
 let $GIT_SSL_NO_VERIFY='true'
  
  
 " Begin Vundle plugin management
 filetype off
-call vundle#begin()
+call vundle#begin('$HOME\vimfiles\bundle\')
 Plugin 'gmarik/Vundle.vim'
 Plugin 'kien/ctrlp.vim'
 Plugin 'FelikZ/ctrlp-py-matcher' " speeds up ctrlp search considreably
 "Plugin 'scrooloose/syntastic' " flake8-vim is much faster and easier to use
 Plugin 'ervandew/supertab'
-Plugin 'SirVer/ultisnips'
+if !has("gui_running")
+    Plugin 'SirVer/ultisnips'
+endif
 Plugin 'honza/vim-snippets'
 Plugin 'bkad/CamelCaseMotion'
 Plugin 'vcscommand.vim'
@@ -48,404 +91,576 @@ Plugin 'richsoni/vim-ecliptic'
 "Plugin 'fisadev/vim-ctrlp-cmdpalette'
 "Plugin 'Keithbsmiley/investigate.vim'
 call vundle#end()
- 
- 
+
+
+if !has("gui_running")
+    set t_Co=256
+    set term=xterm-256color
+endif
+if !has("gui_running") && has("clipboard")
+    set clipboard=unnamed
+endif
+
+colorscheme lucius
+if has("gui_running")
+    LuciusDark
+    "LuciusLight
+else
+    "LuciusLight
+    LuciusDark
+endif
+syntax on
+
+set wildignore+=.svn\*,*.pyc,*.pyo,*.so,*.o,*.dll,*.lib,*.pyd
+set wildignore+=*.obj,*.h5,*.ttf,*.pdf,*.xls,*.pcl,*.gz,*.png
+set wildignore+=*.gif,*.jpg,*.ico,*.bak,*~
+set wildignore+=*.sln,*.csproj,*.resx,*.suo
+set wildignore+=*.exe,*.pdb,*.map
+set wildignore+=*.doc
+set wildignore+=tmp,tags,cscope.out
+
+
+" ============================================================================
+" UI Options:
+" ============================================================================
+
+set cmdheight=1
+set completeopt=longest,menu complete=.,w,b,u
+set confirm
+set guioptions=egc
+set laststatus=2
+set listchars=tab:\|\ ,trail:.,extends:>,precedes:<,eol:$
+set fillchars=
+set mouse=a mousehide ttymouse=xterm2
+set noequalalways
+set noerrorbells visualbell t_vb=
+if has('autocmd')
+  autocmd GUIEnter * set visualbell t_vb=
+endif
+"set noerrorbells 
+"set novisualbell
+set ruler showcmd
+set scrollopt=jump,ver,hor
+set showtabline=1
+set sidescroll=10
+set splitbelow splitright
+set statusline=%<%f\ %h%m%r%y[%{&ff}]%=%-14.(%l,%c%V%)\ %P
+set wildmenu wildmode=list:longest,full
+set winminheight=0 winminwidth=0
+set ignorecase incsearch nohlsearch smartcase
+if has("gui_running")
+    set title
+    if InLocation("home_osx")
+        set lines=80 columns=200 fuoptions=maxvert,maxhorz
+    else
+        set lines=60 columns=160
+    endif
+    if has("gui_win32") || has ("gui_win64")
+        set guifont=Consolas:h10
+    elseif has("gui_macvim")
+        set guifont=Consolas:h13
+    endif
+else
+    set guioptions+=aA
+endif
+
+
+" ============================================================================
+" File Options:
+" ============================================================================
+
+filetype plugin indent on
+set autoread
+set encoding=utf-8
+set fileformats=unix,dos
+set nobackup nowritebackup noswapfile
+
+
+" ============================================================================
+" Editting Options:
+" ============================================================================
+
+set autoindent
+set backspace=indent,eol,start
+set formatoptions=tcrqn
+set nowrap nojoinspaces
+set showmatch
+set tabstop=4 softtabstop=4 shiftwidth=4 expandtab smarttab shiftround
+set virtualedit=block
+set whichwrap+=<,>,h,l
+if version >= 703
+    set cryptmethod=blowfish
+endif
+
+
+" ============================================================================
+" Key Mappings:
+" ============================================================================
+
+let mapleader = ";"
+let maplocalleader = ";"
+
+" Indenting in visual mode
+vnoremap <tab> >gv
+vnoremap <s-tab> <gv
+vnoremap > >gv
+vnoremap < <gv
+
+vnoremap <BS> d
+if InLocation("home_osx")
+    inoremap <A-BS> <C-w>
+elseif InLocation("home_win") || InLocation("work_win")
+    inoremap <C-BS> <C-w>
+endif
+
+map <Leader>gq gqap
+
+" Select up to the next non-text blob
+vmap <C-j> /^[^a-zA-Z0-9]*$<CR>k
+vmap <C-k> ?^[^a-zA-Z0-9]*$<CR>j
+
+" Buffer contorls
+noremap <silent> <leader>n :bnext<CR>
+noremap <silent> <leader>p :bprev<CR>
+
+" Diff commands
+noremap <silent> <leader>dt :diffthis<CR>
+noremap <silent> <leader>do :diffoff!<CR>
+
+" Window control
+nmap <C-j> <C-w>j
+nmap <C-k> <C-w>k
+nmap <C-h> <C-w>h
+nmap <C-l> <C-w>l
+
+" Resize windows
+if has("gui_running")
+    nnoremap <S-Up> 10<C-W>+
+    nnoremap <S-Down> 10<C-W>-
+    nnoremap <S-Left> 10<C-W><
+    nnoremap <S-Right> 10<C-W>>
+else
+    nnoremap <Up> 10<C-W>+
+    nnoremap <Down> 10<C-W>-
+    nnoremap <Left> 10<C-W><
+    nnoremap <Right> 10<C-W>>
+endif
+
+" Splitting
+noremap <leader>sp :split<CR>
+noremap <leader>vs :vsplit<CR>
+
+" Shortcuts for clipboard copy/pasting
+vnoremap zp "*p
+vnoremap zy "*y
+noremap zp "*p
+noremap zy "*y
+
+" Make x not yank to register
+noremap x "_x
+
+" CTRL-A is Select all, etc
+if !InLocation("home_osx")
+    noremap <C-A> ggVG
+    inoremap <C-A> <C-O>gg<C-O>gH<C-O>G
+    cnoremap <C-A> <C-C>gggH<C-O>G
+    onoremap <C-A> <C-C>gggH<C-O>G
+    snoremap <C-A> <C-C>gggH<C-O>G
+    xnoremap <C-A> <C-C>ggVG
+    noremap <C-S> :w<CR>
+endif
+
+" Color scheme
+nnoremap <F2> :LuciusLight<CR>
+nnoremap <S-F2> :LuciusDark<CR>
+nnoremap <C-F2> :LuciusDarkDim<CR>
+
+" Windows copy, cut, and paste
+if has("win32") || has("win64")
+    exe 'inoremap <script> <C-V>' paste#paste_cmd['i']
+    exe 'vnoremap <script> <C-V>' paste#paste_cmd['v']
+
+    " Fix shift + insert to use the paste scripts too
+    imap <S-Insert> <C-V>
+    vmap <S-Insert> <C-V>
+
+    " Use CTRL-Q to do what CTRL-V used to do
+    noremap <C-Q> <C-V>
+
+    " CTRL-X and SHIFT-Del are Cut
+    vnoremap <C-X> "+x
+    vnoremap <S-Del> "+x
+
+    " CTRL-C and CTRL-Insert are Copy
+    vnoremap <C-C> "+y
+    vnoremap <C-Insert> "+y
+
+    " CTRL-V and SHIFT-Insert are Paste
+    map <C-V> "+gP
+    map <S-Insert> "+gP
+
+    " Command mode paste
+    cmap <C-V> <C-R>+
+    cmap <S-Insert> <C-R>+
+endif
+
+" Don't bring up help on F1
+map <F1> <ESC>
+imap <F1> <ESC>
+
+" Disable middle mouse button pasting
+map <MiddleMouse> <Nop>
+imap <MiddleMouse> <Nop>
+map <2-MiddleMouse> <Nop>
+imap <2-MiddleMouse> <Nop>
+map <3-MiddleMouse> <Nop>
+imap <3-MiddleMouse> <Nop>
+map <4-MiddleMouse> <Nop>
+imap <4-MiddleMouse> <Nop>
+
 " Get rid of Ex mode
 nnoremap <S-Q> <Q>
- 
-"Go to end of line
-inoremap <c-e> <esc>A
- 
-" set number
-" set relativenumber
- 
-set term=xterm-256color
-set ttytype=xterm-256color
- 
- 
-"" needed for syntastic
-"call pathogen#infect()
-"let g:syntastic_python_checker = 'pyflakes'
-"
-"let g:syntastic_cpp_compiler = 'gnumake'
-"let g:syntastic_cpp_compiler_options = ' -R MAKETARGET=rh5a64g4 MKDEPS=NO -j 8'
- 
-set noswapfile
- 
-colorscheme lucius
-LuciusDark
- 
-"super tab
-" let g:SuperTabRetainCompletionDuration='completion'
-let g:AutoClosePumvisible = {"ENTER": "<C-Y>", "ESC": "<ESC>"}
- 
-let g:LargeFile= 50            " in megabytes
- 
- 
-" adds a vertical line at 100 to visually keep lines by 100
-hi ColorColumn ctermbg=237 guibg=#3a3a3a
-set colorcolumn=100
- 
-let mapleader=';'      " Change leader to something easier to reach
- 
-" auto preview http://www.vim.org/scripts/script.php?script_id=2228
-let g:AutoPreview_enabled =0
- 
-" make you could press F5 key to enable or disable the preview window, you can also set to other favorite hotkey here
-nnoremap <F5> :AutoPreviewToggle<CR>
-inoremap <F5> <ESC>:AutoPreviewToggle<CR>i
- 
-" set the time(ms) break to refresh the preview window, I recommend 500ms~1000ms with good experience
-set updatetime=500
- 
-"needs to be done to get more colors
-set t_Co=256
- 
-" this avoids having to do "+ when copying to and from buffers
-" set clipboard=unnamed
- 
-au FileChangedShell * echo "Warning: File changed on disk"
- 
-" clears last search highlighting when you press shift-H
-nnoremap <S-H> :noh<CR>
- 
-" searching
-set ignorecase                   "ignore case when searching
-set smartcase                    "retain case when pattern has uppercase
-set infercase                      "adjust case for keyword completion
-set incsearch                      "incremental searches
-set hlsearch                        "highlight searches
-set wrapscan                     "do wrap searches
- 
-" see http://vim.wikia.com/wiki/Keep_folds_closed_while_inserting_text
-" set foldmethod=syntax
-let g:pydiction_location = '~/.vim/ftplugin/pydiction/complete-dict'
- 
-"status bar with more info
-set statusline=%F%m%r%h%w\ [FORMAT=%{&ff}]\ [TYPE=%Y]\ [ASCII=\%03.3b]\ [HEX=\%02.2B]\ [POS=%04l,%04v][%p%%]\ [LEN=%L]
-set laststatus=2    "always show status bar even if only one buffer open
- 
-let iswindows = has('win16') || has('win32') || has('win64')
-if iswindows
-                let Tlist_Ctags_Cmd = 'C:/Ctags58/ctags'
-else
-                let Tlist_Ctags_Cmd = '/auto/csmodeldata/foopen/AMD64/bin/ctags'
+
+
+" ============================================================================
+" Commands:
+" ============================================================================
+
+command! -nargs=1 Title :set title titlestring=<args>
+
+" Strip extra whitespace
+command! Strip %s/\s\+$//
+
+command! ReloadConfig :source ~/vimfiles/vimrc.vim
+command! Config :e ~/vimfiles/vimrc.vim
+
+command! Notes :cd ~/notes
+
+" Change directory to current buffer
+command! CD :lcd %:p:h
+
+" More lenient to save command
+command! W w
+command! Q q
+command! QA qa
+command! Qa qa
+command! Wq wq
+command! WQ wq
+
+
+" ============================================================================
+" Plugin Options:
+" ============================================================================
+
+" ----------------------------------------------------------------------------
+" Airline:
+" ----------------------------------------------------------------------------
+
+let g:airline_left_sep=''
+let g:airline_right_sep=''
+
+" ----------------------------------------------------------------------------
+" Ctags:
+" ----------------------------------------------------------------------------
+
+let g:ctags_bin = "ctags"
+
+
+" ----------------------------------------------------------------------------
+" Cpp Omnicomplete:
+" ----------------------------------------------------------------------------
+
+let OmniCpp_GlobalScopeSearch = 1
+let OmniCpp_NamespaceSearch = 2
+let OmniCpp_ShowPrototypeInAbbr = 1
+
+
+" ----------------------------------------------------------------------------
+" CScope:
+" ----------------------------------------------------------------------------
+
+"if has("cscope")
+"    set cscopequickfix=s-,c-,d-,i-,t-,e-
+"    if filereadable("cscope.out")
+"        set cscopetagorder=0
+"        set cscopetag
+"        set nocscopeverbose
+"        cs add cscope.out
+"        "set cscopeverbose
+"    endif
+
+"    " View the tag (g-] behavior)
+"    nmap <C-@>v :tselect <C-R>=expand("<cword>")<CR><CR>
+"    " Find this C symbol
+"    nmap <C-@>s :lcscope find s <C-R>=expand("<cword>")<CR><CR>
+"    " Find this definition
+"    nmap <C-@>g :lcscope find g <C-R>=expand("<cword>")<CR><CR>
+"    " Find functions called by this function
+"    nmap <C-@>d :lcscope find d <C-R>=expand("<cword>")<CR><CR>
+"    " Find functions calling this function
+"    nmap <C-@>c :lcscope find c <C-R>=expand("<cword>")<CR><CR>
+"    " Find this text string
+"    nmap <C-@>t :lcscope find t <C-R>=expand("<cword>")<CR><CR>
+"    " Find this egrep pattern
+"    nmap <C-@>e :lcscope find e <C-R>=expand("<cword>")<CR><CR>
+"    " Find this file
+"    nmap <C-@>f :lcscope find f <C-R>=expand("<cword>")<CR><CR>
+"    " Find files #including this file
+"    nmap <C-@>i :lcscope find i <C-R>=expand("<cword>")<CR><CR>
+"endif
+
+
+" ----------------------------------------------------------------------------
+" CtrlP:
+" ----------------------------------------------------------------------------
+
+let g:ctrlp_working_path_mode = 0
+let g:ctrlp_show_hidden = 0
+let g:ctrlp_max_height = 20
+let g:ctrlp_clear_cache_on_exit = 0
+let g:ctrlp_lazy_update = 0
+let g:ctrlp_buftag_ctags_bin = g:ctags_bin
+let g:ctrlp_switch_buffer = 'vh'
+let g:ctrlp_extensions = ['buffertag']
+let g:ctrlp_custom_ignore = {
+            \ 'dir': 'tests$',
+            \ 'file': '',
+            \ }
+
+noremap <silent> <leader>ff :CtrlP<CR>
+noremap <silent> <leader>fb :CtrlPBuffer<CR>
+noremap <silent> <leader>fr :CtrlPMRU<CR>
+noremap <silent> <leader>ft :CtrlPBufTag<CR>
+
+
+" ----------------------------------------------------------------------------
+" Dbext:
+" ----------------------------------------------------------------------------
+
+let g:dbext_default_prompt_for_parameters = 0
+let g:dbext_default_display_cmd_line = 1
+let g:dbext_default_SQLITE_bin = "sqlite3"
+let g:dbext_default_history_file = "$HOME/.dbext_sql_history.txt"
+
+
+" ----------------------------------------------------------------------------
+" Lucius:
+" ----------------------------------------------------------------------------
+
+let g:projects = {}
+let g:databases = {}
+command! Tags call lucius#GenerateTags(fnamemodify(bufname('%'), \':p:h'), 0) " current file dir
+command! TagsForce call lucius#GenerateTags(fnamemodify(bufname('%'), \':p:h'), 1) " current file dir, force
+command! TagsCwd call lucius#GenerateTags(getcwd(), 0) " current cwd
+command! TagsCwdForce call lucius#GenerateTags(getcwd(), 1) " cwd, force
+command! -nargs=1 -complete=file Sqlite :call lucius#LoadSqlite(<q-args>)
+command! -nargs=1 -complete=custom,lucius#DatabaseComplete Database :call
+            \ lucius#LoadDatabase(<q-args>)
+command! -nargs=1 -complete=custom,lucius#DatabaseComplete Data :call
+            \ lucius#LoadDatabase(<q-args>)
+command! -nargs=1 -complete=custom,lucius#ProjectComplete Project :call
+            \ lucius#LoadProject(<q-args>)
+command! -nargs=1 -complete=custom,lucius#ProjectComplete Proj :call
+            \ lucius#LoadProject(<q-args>)
+
+noremap <C-f> :call lucius#ToggleSearchHighlighting()<CR>
+nnoremap <F10> :call lucius#ToggleTextWidth()<CR>
+nnoremap <S-F10> :call lucius#ToggleWrap()<CR>
+nnoremap <F11> :call lucius#ToggleSpellCheck()<CR>
+nnoremap <F12> :call lucius#ToggleScrollbars()<CR>
+
+if has("python")
+    command! -range EvalPythonRange call lucius#EvaluateCurrentRange()
+    map <silent> <F5> :EvalPythonRange<CR>
 endif
- 
-let g:UltiSnipsJumpForwardTrigger="<tab>"                                      
-let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
- 
-"let Tlist_Compact_Format=1
-"let Tlist_Process_File_Always=1
-"let Tlist_Show_One_File=1
-"let Tlist_Sort_Type='name'
-"let g:tlist_python_settings = 'python;v:variable;c:class;m:member;f:function;i:imports'
-"" Update taglist on write
-"au BufWritePost * TlistUpdate
-"" Tag List Toggle
-"nmap <silent> <leader>tags :TlistToggle<CR>
-"map <A-]> :vsp <CR>:exec("tag ".expand("<cword>"))<CR>
- 
-function! CleanTags()
-                                if exists('g:ctags_tempfiles')
-                                                                if !empty(g:ctags_tempfiles)
-                                                                                                for tempfile in g:ctags_tempfiles
-                                                                                                                                exe 'silent set tags-=' . tempfile
-                                                                                                                                call delete(tempfile)
-                                                                                                endfor
-                                                                endif
-                                endif
-endfunction
- 
-function! MakeTags()
-                                let iswindows = has('win16') || has('win32') || has('win64')
-                                let slash = iswindows ? '\' : '/'
-                                let fname = fnamemodify(bufname('%'), ':p')
-                                let fdir = fnamemodify(bufname('%'), ':p:h')
-                                let ftype = getbufvar('%', '&filetype')
- 
-                                if !exists('g:ctags_tempfiles')
-                                                                let g:ctags_tempfiles = []
-                                endif
- 
-                                let tempfile = tempname()
-                                call add(g:ctags_tempfiles, tempfile)
- 
-                                if !exists('g:ctags_executable')
-                                                                if iswindows
-                                                                                                let g:ctags_executable = 'C:/Ctags58/ctags'
-                                                                else
-                                                                                                let g:ctags_executable = '/auto/csmodeldata/foopen/AMD64/bin/ctags'
-                                                                endif
-                                endif
- 
-                                let tagcmd = g:ctags_executable . ' -f ' . tempfile
-                                let tagopts = ' --recurse=yes --sort=foldcase ' . fdir
- 
-                                let output = system(tagcmd . tagopts)
- 
-                                if output != ''
-                                                                echohl WarningMsg
-                                                                echomsg tagcmd
-                                                                echomsg output
-                                                                echohl None
-                                else
-                                                                exe 'silent set tags+=' . tempfile
-                                endif
-endfunction
- 
-autocmd VimLeave * call CleanTags()
-command! -nargs=0 MakeTags :call MakeTags()
- 
-" === editing mappings
- 
-" Make tab indent code in visual mode
-vmap <tab> >gv
-vmap <s-tab> <gv
- 
-"indentation, etc.
-set cindent comments=:# cinkeys-=0#
-set formatoptions=croql
-set autoindent
-set smartindent
-set smarttab
-set softtabstop=4
-set shiftwidth=4
-set tabstop=4
-set expandtab      " Use spaces rather than tabs
- 
-" flake8
-let g:PyFlakeCheckers = 'pep8'
-let g:PyFlakeDisabledMessages = 'E501,C0103,C0301'
-let g:PyFlakeMaxLineLength = 150
-let g:PyFlakeRangeCommand = 'Q'
-let g:PyFlakeCWindow=0
- 
-"pastetoggle for disabling auto indentation
-set pastetoggle=<F2>
- 
-"completion settings
-set complete=.,w,b,u,t
-set completeopt=menuone,longest,preview
- 
-" Erase any trailing spaces
-nmap <silent> <Leader>trim :%s/\s\+$//g<CR>
- 
-"Syntax highlighting
-syntax on            " Enable syntax highlighting
-filetype on          " Enable filetype detection
-filetype indent on   " Enable filetype-specific indenting
-filetype plugin on   " Enable filetype-specific plugins
-let python_highlight_all=1
- 
-nmap <C-x> :bd <cr>
-nmap <Space> <PageDown>
- 
-" Abbreviations
-function EatChar(p)
-                let c = nr2char(getchar(0))
-                return (c =~ a:p) ? '' : c
-endfunction
- 
-" Completions
-"function CleverTab()
-"              if strpart(getline('.'), 0, col('.')-1) =~ '^\s*$'
-"                              return "\<Tab>"
-"              else
-"                              return "\<C-N>"
-"endfunction
-"inoremap <Tab> <C-R>=CleverTab()<CR>
- 
-" Resize windows
-nmap <S-e> :resize +15<CR>
-nmap <S-b> :resize -15<CR>
-nmap <C-e> :vertical resize +15<CR>
-nmap <C-b> :vertical resize -15<CR>
-" = VCS OPTIONS =
- 
+
+
+" ----------------------------------------------------------------------------
+" NERD Commenter:
+" ----------------------------------------------------------------------------
+
+let NERDShutUp = 1
+let NERDRemoveExtraSpaces=0
+
+
+" ----------------------------------------------------------------------------
+" NERD Tree:
+" ----------------------------------------------------------------------------
+
+let g:NERDTreeChDirMode = 0
+let g:NERDChristmasTree = 1
+let g:NERDTreeCaseSensitiveSort = 0
+let g:NERDTreeIgnore = ['\.doc$', '\.pdf$', '\.xls$', '\.docx$',
+            \'\.zip$', '\.dll$', '\.so$', '\.pyc$', '\~$']
+let g:NERDTreeShowHidden = 0
+let g:NERDTreeWinPos = 'left'
+let g:NERDTreeWinSize = 32
+
+map <F3> :NERDTreeToggle<CR>
+map <C-F3> :NERDTree<CR>
+map <S-F3> :NERDTreeClose<CR>
+
+
+" ----------------------------------------------------------------------------
+" Python:
+" ----------------------------------------------------------------------------
+
+let python_highlight_all = 1
+au BufEnter *.py :syntax sync fromstart " helps with ''' comments
+
+let g:pyindent_open_paren = "&sw"
+let g:pyindent_nested_paren = "&sw"
+let g:pyindent_continue = "&sw"
+
+
+" ----------------------------------------------------------------------------
+" SQLUtilities:
+" ----------------------------------------------------------------------------
+
+let g:sql_type_default = "sqlanywhere"
+let g:sqlutil_align_where = 0
+let g:sqlutil_align_comma = 1
+let g:sqlutil_align_first_word = 1
+let g:sqlutil_keyword_case = '\L'
+
+
+" ----------------------------------------------------------------------------
+" SuperTab:
+" ----------------------------------------------------------------------------
+
+let SuperTabDefaultCompletionType = "context"
+let SuperTabContextDefaultCompletionType = "<c-n>"
+let SuperTabContextTextOmniPrecedence = ["&completefunc"]
+au BufEnter *.md,*.txt,*.wiki :let b:SuperTabNoCompleteAfter = g:SuperTabNoCompleteAfter + ['\.', '\*', '-', ')']
+
+
+" ----------------------------------------------------------------------------
+" Syntastic:
+" ----------------------------------------------------------------------------
+
+let g:syntastic_check_on_open = 0
+let g:syntastic_echo_current_error = 1
+let g:syntastic_enable_signs = 1
+let g:syntastic_enable_balloons = 1
+let g:syntastic_always_populate_loc_list=1
+let g:syntastic_enable_highlighting = 1
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_mode_map = {
+            \ "mode": "passive",
+            \ "active_filetypes": [],
+            \ "passive_filetypes": [] }
+let g:syntastic_python_checkers = ["pyflakes"]
+map <Leader>sc :SyntasticCheck<CR>
+map <Leader>sr :SyntasticReset<CR>
+
+
+" ----------------------------------------------------------------------------
+" Tagbar:
+" ----------------------------------------------------------------------------
+
+let g:tagbar_compact = 1
+let g:tagbar_iconchars = ['+', '-']
+let g:tagbar_ctags_bin = g:ctags_bin
+map <F4> :TagbarToggle<CR>
+
+map <leader>t :echo tagbar#currenttag('%s','','fs')<CR>
+"set statusline=%<%f\ %h%m%r%y[%{&ff}]\ \ %{tagbar#currenttag('%s','','f')}%=%-14.(%l,%c%V%)\ %P
+
+
+" ----------------------------------------------------------------------------
+" VCS:
+" ----------------------------------------------------------------------------
+
 let VCSCommandDeleteOnHide = 1
- 
 augroup VCSCommand
     au User VCSBufferCreated set bufhidden=wipe
 augroup END
- 
- 
-" vim scope options
-if has("cscope")
-    set cscopeprg=/auto/cnvtvws/vim/7.3/bin/cscope
-    set cscopetagorder=0
-    set cscopetag
-    set nocscopeverbose
-    if filereadable("cscope.out")
-        cs add cscope.out
-    elseif $CSCOPE_DB != ""
-        cs add $CSCOPE_DB
-    endif
+map <Leader>vd :VCSVimDiff<CR>
+
+
+" ============================================================================
+" Autocommands:
+" ============================================================================
+
+" Close the preview window automatically
+autocmd CursorMovedI * if pumvisible() == 0|pclose|endif
+autocmd InsertLeave * if pumvisible() == 0|pclose|endif
+
+" Set xaml to be like xml
+au BufNewFile,BufRead *.xaml setfiletype xml
+
+" Format for xml
+au FileType xml setlocal equalprg=xmllint\ --format\ --recover\ -\ 2>/dev/null
+
+" Markdown
+au FileType markdown setlocal formatoptions-=l textwidth=79
+
+" ICE
+au FileType slice setlocal cindent
+
+
+" ============================================================================
+" Functions:
+" ============================================================================
+
+" ----------------------------------------------------------------------------
+" EditColors:
+" ----------------------------------------------------------------------------
+
+function! EditColors()
+    execute 'e ~/vimfiles/colors/lucius.vim'
+    execute 'so $VIMRUNTIME/syntax/hitest.vim'
+    execute 'wincmd L'
+    execute 'help syntax'
+    execute 'wincmd ='
+    execute '10wincmd +'
+    execute '219'
+    normal! zt
+    execute 'wincmd h'
+    execute 'set title titlestring=Colors'
+endfunction
+command! Colors call EditColors()
+
+
+" ----------------------------------------------------------------------------
+" GetOutput:
+" ----------------------------------------------------------------------------
+
+function! GetOutput(cmd)
+    redir => message
+    silent execute a:cmd
+    redir END
+    enew
+    silent put=message
+    set nomodified
+endfunction
+command! -nargs=+ -complete=command GetOutput call GetOutput(<q-args>)
+
+
+" ----------------------------------------------------------------------------
+" UseWorkSettings:
+" ----------------------------------------------------------------------------
+
+function! UseWorkSettings()
+    "au BufNewFile,BufRead *.py set noexpandtab
+    au BufNewFile,BufRead *.py set expandtab colorcolumn=80
+    au BufNewFile,BufRead *.cpp set noexpandtab
+    au BufNewFile,BufRead *.C set noexpandtab
+    au BufNewFile,BufRead *.hpp set noexpandtab
+    au BufNewFile,BufRead *.H set noexpandtab
+    au BufNewFile,BufRead *.cs set noexpandtab
+endfunction
+command! WorkSettings :call UseWorkSettings()
+if InLocation("work_win", "work_linux")
+    WorkSettings
 endif
- 
-" = VIMWIKI OPTIONS =
- 
- 
-let g:vimwiki_hl_cb_checked=1 " Comment out checked items
-let g:vimwiki_use_mouse=0 " Toggle mouse to navigate
-let g:vimwiki_hl_headers=1
-let g:vimwiki_camel_case=1
-let g:vimwiki_folding=1
-let g:vimwiki_fold_lists=1
-let g:vimwiki_table_auto_fmt=0 " Allow tab complete by removing tab table mappings
-au BufNewFile,BufRead *.wiki set tw=79
- 
-noremap <silent> <leader>wj :VimwikiDiaryNextDay<CR>
-noremap <silent> <leader>wk :VimwikiDiaryPrevDay<CR>
- 
-let wiki = {}
-let wiki.path = '~/wiki/'
-let wiki.path_html = '~/wiki/html/'
-let wiki.index = 'Index'
-let wiki.nested_syntaxes = {'python': 'python', 'c++': 'cpp', 'c#': 'cs', 'C#': 'cs', 'sql': 'sql'}
-let wiki.maxhi = 1
-let wiki_info = {}
-let wiki_info.path = '/Volumes/info/'
-let wiki_info.path_html = '/Volumes/info/html/'
-let wiki_info.index = 'Index'
-let wiki_info.nested_syntaxes = {'python': 'python', 'c++': 'cpp', 'c#': 'cs', 'C#': 'cs', 'sql': 'sql'}
-let wiki_info.maxhi = 1
-let g:vimwiki_list = [wiki, wiki_info]
- 
-function! CheckCompleteAndTimestamp()
-    normal ^
-    normal f]
-    let datetime=strftime('%Y-%m-%d')
-    exe "normal a (" . datetime . ")"
-    exe "VimwikiToggleListItem"
-    normal ^
-endfun
-noremap <silent> <leader>td :call CheckCompleteAndTimestamp()<CR>
- 
-"" ctags path
-let g:ctags_path = "./tags"
- 
-" = ctrl p arguments"
-"let g:ctrlp_custom_ignore = '\v\~$|\.o$|\.so$|rh5a64g4|.obj$|\.dll$|\.pyc$|\.pyo$|\.exe$|\.bak$|\.swp$|\.lib$|\.exp$|\.nfs.*$|\.pyd$|\.swo$|\.swn$|\.zip$|\.json$|\.html$|\.bba$|\.log$|\.xml$|\.pyfixed$|\.pdf$|\.h5$|\.xls$|\.sh$|\.tex$|\.txt$|\.lock$|\.dat'
-let g:ctrlp_user_command = "find %s -type f | egrep -v '/\.(git|hg|svn)|solr|tmp/' | egrep -v '\.(pyc|png|exe|jpg|gif|jar|class|swp|swo|log|gitkep|keepme|so|o)$'"
- 
-let g:ctrlp_show_hidden=0
-let g:ctrlp_switch_buffer=1
-let g:ctrlp_match_window='max:10,results:100'
-let g:ctrlp_use_caching=1
-let g:ctrlp_root_markers=['cscope.out', 'tags']
-let g:ctrlp_extensions=['buffertag']
-let g:ctrlp_match_window_bottom = 0
-let g:ctrlp_buftag_ctags_bin='/auto/cnvtvws/vim/current/bin/ctags'
-let g:ctrlp_match_func = { 'match': 'pymatcher#PyMatch' }
- 
-"DirDiff
-"let g:DirDiffExcludes = "CVS,*.class,*.exe,.*.swp,*.o,*.a,*.so,*.pyc,*.svn*,*tmp*"
-let g:DirDiffExcludes = "CVS,*.class,*.exe,.*.swp,*.o,*.a,*.so,*.pyc,*.svn"
-let g:DirDiffIgnore = "Id:,Revision:,Date:"
-let g:DirDiffSort = 1
-let g:DirDiffWindowSize = 14
-let g:DirDiffInteractive = 0
-let g:DirDiffIgnoreCase = 0
- 
-nmap <F3> :diffget<CR>]czz
-nmap <F7> [czz
-nmap <F8> ]czz
- 
-" Next and Previous error (using Make)
-map <C-n> :cn<CR>
-map <C-p> :cp<CR>
- 
-imap <C-j> <Esc><C-W>j<C-W>_:set foldmethod=manual<CR>
-imap <C-k> <Esc><C-W>k<C-W>_:set foldmethod=manual<CR>
-map <C-j> <C-W>j<C-W>_:set foldmethod=manual<CR>
-map <C-k> <C-W>k<C-W>_:set foldmethod=manual<CR>
- 
-nmap <F9> :set nowrap<CR>
-nmap <F10> :set wrap<CR>
- 
- 
-" When bringing up a browse dialog, start in the current buffer's directory
-set browsedir=buffer
- 
-set backspace=2
-set lazyredraw
-set noequalalways
-set wmh=0
- 
-" makes it so you can tab complete
-set wildmenu
-set wildmode=longest:list
- 
-vmap Q gq
- 
-vmap <C-j> /^[^a-zA-Z0-9]*$<CR>k
-vmap <C-k> ?^[^a-zA-Z0-9]*$<CR>j
- 
-" Function to change to the current directory of the current file when called
-"function! CHANGE_CURR_DIR()
-"    if (strlen(@%)!=0)
-"        exec "cd " . expand("%:p:h")
-"    endif
-"endfunction
-"
-"autocmd BufEnter * call CHANGE_CURR_DIR()
- 
-function! RunPyflakes(...)
-  if (a:0 == 0)
-    let arg = "%"
-  else
-    let arg = join(a:000, ' ')
-  endif
-  let cmd = "setlocal makeprg=pyflakes\\ " . arg . '\\\\|grep\ -v\ \"baseSite\"'
-  exe cmd
-  make
-  cw
-endfunction
-nmap <buffer>  <F11>   :call RunPyflakes()<CR>
-command! -nargs=* -complete=file Pyflakes call RunPyflakes(<f-args>)
-command -nargs=1 Security :py LookupSecurity(<args>)
-command -nargs=1 Issuer :py LookupIssuer(<args>)
- 
- 
-" Escape special characters in a string for exact matching.
-" This is useful to copying strings from the file to the search tool
-" Based on this - http://peterodding.com/code/vim/profile/autoload/xolox/escape.vim
-function! EscapeString (string)
-  let string=a:string
-  " Escape regex characters
-  let string = escape(string, '^$.*\/~[]')
-  " Escape the line endings
-  let string = substitute(string, '\n', '\\n', 'g')
-  return string
-endfunction
- 
-" Get the current visual block for search and replaces
-" This function passed the visual block through a string escape function
-" Based on this - http://stackoverflow.com/questions/676600/vim-replace-selected-text/677918#677918
-function! GetVisual() range
-  " Save the current register and clipboard
-  let reg_save = getreg('"')
-  let regtype_save = getregtype('"')
-  let cb_save = &clipboard
-  set clipboard&
- 
-  " Put the current visual selection in the " register
-  normal! ""gvy
-  let selection = getreg('"')
- 
-  " Put the saved registers and clipboards back
-  call setreg('"', reg_save, regtype_save)
-  let &clipboard = cb_save
- 
-  "Escape any special characters in the selection
-  let escaped_selection = EscapeString(selection)
- 
-  return escaped_selection
-endfunction
- 
-" Start the find and replace command across the entire file
-vmap <leader>z <Esc>:%s/<c-r>=GetVisual()<cr>/
- 
-" related to .mma syntax vim-mathematica
-let g:mma_candy = 1
+
+
+" ============================================================================
+" Local:
+" ============================================================================
+
+if filereadable(expand("~/.vimrc_local"))
+    source ~/.vimrc_local
+endif
+
