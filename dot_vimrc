@@ -55,7 +55,7 @@ let $GIT_SSL_NO_VERIFY='true'
  
 " Begin Vundle plugin management
 filetype off
-call vundle#begin('$HOME\vimfiles\bundle\')
+call vundle#begin()
 Plugin 'gmarik/Vundle.vim'
 Plugin 'kien/ctrlp.vim'
 Plugin 'FelikZ/ctrlp-py-matcher' " speeds up ctrlp search considreably
