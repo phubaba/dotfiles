@@ -99,7 +99,7 @@ if !has("gui_running")
     set term=xterm-256color
 endif
 if !has("gui_running") && has("clipboard")
-    set clipboard=unnamed
+    set clipboard=unnamedplus
 endif
 
 colorscheme lucius
@@ -657,6 +657,15 @@ if InLocation("work_win", "work_linux")
 endif
 
 
+" WSL yank support
+let s:clip = '/mnt/c/Windows/System32/clip.exe'  " change this path according to your mount point
+if executable(s:clip)
+    augroup WSLYank
+        autocmd!
+        autocmd TextYankPost * if v:event.operator ==# 'cy' | call system(s:clip, @0) | endif
+    augroup END
+endif
+
 " ============================================================================
 " Local:
 " ============================================================================
@@ -664,4 +673,7 @@ endif
 if filereadable(expand("~/.vimrc_local"))
     source ~/.vimrc_local
 endif
+
+
+
 
