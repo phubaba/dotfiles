@@ -59,9 +59,9 @@ if [ -n "$force_color_prompt" ]; then
 fi
 
 if [ "$color_prompt" = yes ]; then
-    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]: \[\033[01;34m\]\w\[\033[00m\]\n$ '
 else
-    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+    PS1='${debian_chroot:+($debian_chroot)}\u@\h: \w\n$ '
 fi
 unset color_prompt force_color_prompt
 
@@ -94,6 +94,13 @@ alias ll='ls -alF'
 alias la='ls -A'
 alias l='ls -CF'
 alias cddd='cd /mnt/c/Users/phuba/OneDrive/Documents/life/classes/diveintodocker/'
+alias tl='tmux list-sessions'
+
+function ta(){
+  tmux attach -t $1
+}
+
+export -f ta
 
 # Add an "alert" alias for long running commands.  Use like so:
 #   sleep 10; alert
@@ -119,24 +126,13 @@ if ! shopt -oq posix; then
   fi
 fi
 
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/home/phubaba/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
+if [ "$(whoami)" == "phubaba" ]; then
+    echo "running bashrc as phubaba from home"
+    . ~/.bash_home
 else
-    if [ -f "/home/phubaba/anaconda3/etc/profile.d/conda.sh" ]; then
-        . "/home/phubaba/anaconda3/etc/profile.d/conda.sh"
-    else
-        export PATH="/home/phubaba/anaconda3/bin:$PATH"
-    fi
+    echo "running bashrc rom work"
+    . ~/.bash_work
 fi
-unset __conda_setup
-# <<< conda initialize <<<
-
-
-export PATH="/home/phubaba/bin:$PATH"
-export PATH="/home/phubaba/.nimble/bin:$PATH"
 
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
