@@ -14,6 +14,8 @@ fi
 unset __conda_setup
 # <<< conda initialize <<<
 
+#to get x410 working
+export DISPLAY=$(cat /etc/resolv.conf | grep nameserver | awk '{print $2; exit;}'):0.0
 
 export PATH="/home/phubaba/bin:$PATH"
 export PATH="/home/phubaba/.nimble/bin:$PATH"
