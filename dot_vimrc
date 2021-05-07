@@ -64,7 +64,7 @@ Plugin 'ervandew/supertab'
 if !has("gui_running")
     Plugin 'SirVer/ultisnips'
 endif
-Plugin 'honza/vim-snippets'
+Plugin 'phubaba/vim-snippets'
 Plugin 'bkad/CamelCaseMotion'
 Plugin 'vcscommand.vim'
 Plugin 'hdima/python-syntax'
