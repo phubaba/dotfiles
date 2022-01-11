@@ -43,6 +43,7 @@ set browsedir=buffer
 set shellslash
 set hidden
 set tags=./tags;/.
+set signcolumn=auto " automatically closes the bar on the left if no errors
 
 if has("gui_running")
     set rtp+=$HOME\vimfiles\bundle\Vundle.vim\
@@ -51,52 +52,79 @@ else
 endif
 
 let $GIT_SSL_NO_VERIFY='true'
+
+let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
+if empty(glob(data_dir . '/autoload/plug.vim'))
+  silent execute '!curl -fLo '.data_dir.'/autoload/plug.vim --create-dirs  https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+endif
  
  
 " Begin Vundle plugin management
-filetype off
-call vundle#begin()
-Plugin 'gmarik/Vundle.vim'
-Plugin 'kien/ctrlp.vim'
-Plugin 'FelikZ/ctrlp-py-matcher' " speeds up ctrlp search considreably
-"Plugin 'scrooloose/syntastic' " flake8-vim is much faster and easier to use
-Plugin 'ervandew/supertab'
-if !has("gui_running")
-    Plugin 'SirVer/ultisnips'
+call plug#begin('~/.vim/plugged')
+
+Plug 'dense-analysis/ale'
+Plug 'gmarik/Vundle.vim'
+Plug 'kien/ctrlp.vim'
+Plug 'FelikZ/ctrlp-py-matcher' " speeds up ctrlp search considreably
+"Plug 'scrooloose/syntastic' " flake8-vim is much faster and easier to use
+"Plug 'ervandew/supertab'
+if !has("gui_running") && !has("nvim")
+    Plug 'SirVer/ultisnips'
 endif
-Plugin 'phubaba/vim-snippets'
-Plugin 'bkad/CamelCaseMotion'
-Plugin 'vcscommand.vim'
-Plugin 'hdima/python-syntax'
-"Plugin 'hynek/vim-python-pep8-indent'
-Plugin 'bling/vim-airline'
-Plugin 'jonathanfilip/vim-lucius'
-Plugin 'tpope/vim-abolish'
-Plugin 'tpope/vim-repeat'
-Plugin 'tpope/vim-surround'
-Plugin 'terryma/vim-multiple-cursors'
-Plugin 'mileszs/ack.vim'
+Plug 'phubaba/vim-snippets'
+Plug 'bkad/CamelCaseMotion'
+Plug 'hdima/python-syntax'
+"Plug 'hynek/vim-python-pep8-indent'
+Plug 'bling/vim-airline'
+Plug 'jonathanfilip/vim-lucius'
+Plug 'tpope/vim-abolish'
+Plug 'tpope/vim-repeat'
+Plug 'tpope/vim-surround'
+Plug 'tpope/vim-fugitive'
+Plug 'terryma/vim-multiple-cursors'
+Plug 'mileszs/ack.vim'
  
-"Plugin 'Valloric/YouCompleteMe'
-Plugin 'lokaltog/vim-easymotion'
-Plugin 'AutoComplPop' " goto http://vim-scripts.org/vim/scripts.html
-Plugin 'vim-scripts/Efficient-python-folding'
-Plugin 'LargeFile'
-Plugin 'andviro/flake8-vim'
-"Plugin 'Townk/vim-autoclose'
-Plugin 'Raimondi/delimitMate'
-Plugin 'chazy/cscope_maps'
-Plugin 'richsoni/vim-ecliptic'
-"Plugin 'tomasr/molokai'
-"Plugin 'ivalkeen/vim-ctrlp-tjump'
-"Plugin 'fisadev/vim-ctrlp-cmdpalette'
-"Plugin 'Keithbsmiley/investigate.vim'
-call vundle#end()
+"Plug 'Valloric/YouCompleteMe'
+Plug 'lokaltog/vim-easymotion'
+Plug 'vim-scripts/AutoComplPop' " goto http://vim-scripts.org/vim/scripts.html
+Plug 'vim-scripts/Efficient-python-folding'
+Plug 'vim-scripts/LargeFile'
+"Plug 'andviro/flake8-vim'
+"Plug 'Townk/vim-autoclose'
+Plug 'Raimondi/delimitMate'
+Plug 'chazy/cscope_maps'
+"Plug 'python-rope/ropevim'
+Plug 'richsoni/vim-ecliptic'
+Plug 'vim-test/vim-test'
+Plug 'tpope/vim-dispatch'
+Plug 'tpope/vim-projectionist'
+"Plug 'tomasr/molokai'
+"Plug 'ivalkeen/vim-ctrlp-tjump'
+"Plug 'fisadev/vim-ctrlp-cmdpalette'
+"Plug 'Keithbsmiley/investigate.vim'
+
+" LSP {{{
+Plug 'prabirshrestha/vim-lsp' " async LSP for vim8 and neovim
+Plug 'prabirshrestha/asyncomplete.vim' " async autocompletion
+Plug 'prabirshrestha/asyncomplete-lsp.vim' " provides LSP autocompletion source for asyncomplete.vim
+Plug 'mattn/vim-lsp-settings' " simplify installing and registering language servers
+
+"TODO try this?
+"Plug 'rhysd/vim-lsp-ale' " simplify installing and registering language servers
+"Plug 'thomasfaingnaert/vim-lsp-snippets'
+"Plug 'thomasfaingnaert/vim-lsp-ultisnips'
+" }}}
+
+call plug#end()
 
 
-if !has("gui_running")
-    set t_Co=256
-    set term=xterm-256color
+if !has("gui_running") && !has("nvim")
+    "once TERM=xterm-256color i didnt need any of this anymore
+    "set termguicolors
+    "set t_Co=256
+    "set t_ut=
+    "set term=xterm-256color
 endif
 if !has("gui_running") && has("clipboard")
     set clipboard=unnamedplus
@@ -132,7 +160,11 @@ set guioptions=egc
 set laststatus=2
 set listchars=tab:\|\ ,trail:.,extends:>,precedes:<,eol:$
 set fillchars=
-set mouse=a mousehide ttymouse=xterm2
+set mouse=a 
+set mousehide 
+if !has('nvim')
+    set ttymouse=xterm2
+endif
 set noequalalways
 set noerrorbells visualbell t_vb=
 if has('autocmd')
@@ -148,7 +180,7 @@ set splitbelow splitright
 set statusline=%<%f\ %h%m%r%y[%{&ff}]%=%-14.(%l,%c%V%)\ %P
 set wildmenu wildmode=list:longest,full
 set winminheight=0 winminwidth=0
-set ignorecase incsearch nohlsearch smartcase
+set ignorecase incsearch hlsearch smartcase
 if has("gui_running")
     set title
     if InLocation("home_osx")
@@ -189,7 +221,7 @@ set showmatch
 set tabstop=4 softtabstop=4 shiftwidth=4 expandtab smarttab shiftround
 set virtualedit=block
 set whichwrap+=<,>,h,l
-if version >= 703
+if version >= 703 && !has("nvim")
     set cryptmethod=blowfish
 endif
 
@@ -250,6 +282,10 @@ endif
 " move and resize
 nnoremap <C-b> :vertical resize -15<cr>
 nnoremap <C-e> :vertical resize +15<cr>
+
+" maximize and minimize windows
+nnoremap <C-W>M <C-W>\|<C-W>_
+nnoremap <C-W>m <C-W>=
 
 " Splitting
 noremap <leader>sp :split<CR>
@@ -326,6 +362,9 @@ imap <4-MiddleMouse> <Nop>
 " Get rid of Ex mode
 nnoremap <S-Q> <Q>
 
+"Clear searches
+nnoremap <C-f> :nohlsearch<Bar>:echo<CR>
+
 
 " ============================================================================
 " Commands:
@@ -363,6 +402,61 @@ command! WQ wq
 
 let g:airline_left_sep=''
 let g:airline_right_sep=''
+
+
+" ----------------------------------------------------------------------------
+" ALE {{{
+" ----------------------------------------------------------------------------
+let g:ale_lint_on_text_changed='normal'
+let g:ale_lint_on_insert_leave=1
+let g:ale_set_highlights=1
+let g:ale_set_signs=1
+let g:ale_set_balloons=0
+
+let in_jcs = isdirectory('/jcs')
+
+
+if in_jcs
+    let g:ale_linters={
+        \ 'cpp': ['gcc'],
+        \ 'python': ['flake8']
+        \ }
+    let g:ale_fixers={
+        \ 'python': ['black']
+        \ }
+    let g:ale_cpp_gcc_options='-std=c++14 -Wall -Wextra -Wpedantic -Wconversion'
+else
+    let g:ale_linters={
+        \ 'cpp': ['gcc'],
+        \ 'python': ['flake8', 'pylint', 'pydocstyle']
+        \ }
+    let g:ale_fixers={
+        \ 'python': ['black', 'isort']
+        \ }
+    let g:ale_cpp_gcc_options='-std=c++14 -Wall -Wextra -Wpedantic -Wconversion'
+    let g:ale_python_flake8_options='--ignore=E203,E501,W503'
+
+endif
+
+" asyncomplete {{{
+let g:asyncomplete_auto_popup=0 " disable auto popup since we define a mapping to use tab for autocompletion
+
+" Autoclose preview window when completion is done
+autocmd! CompleteDone * if pumvisible() == 0 | pclose | endif
+
+function! s:check_back_space() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~ '\s'
+endfunction
+
+" Use tab to trigger autocompletion
+inoremap <silent><expr> <TAB>
+  \ pumvisible() ? "\<C-n>" :
+  \ <SID>check_back_space() ? "\<TAB>" :
+  \ asyncomplete#force_refresh()
+inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+" }}}
+
 
 " ----------------------------------------------------------------------------
 " Ctags:
@@ -430,9 +524,11 @@ let g:ctrlp_buftag_ctags_bin = g:ctags_bin
 let g:ctrlp_switch_buffer = 'vh'
 let g:ctrlp_extensions = ['buffertag']
 let g:ctrlp_custom_ignore = {
-            \ 'dir': 'tests$',
+            \ 'dir': 'env$',
             \ 'file': '',
             \ }
+"leverage ctrlp-py-matcher to go faster
+let g:ctrlp_match_func = { 'match': 'pymatcher#PyMatch' }
 
 noremap <silent> <leader>ff :CtrlP<CR>
 noremap <silent> <leader>fb :CtrlPBuffer<CR>
@@ -449,37 +545,6 @@ let g:dbext_default_display_cmd_line = 1
 let g:dbext_default_SQLITE_bin = "sqlite3"
 let g:dbext_default_history_file = "$HOME/.dbext_sql_history.txt"
 
-
-" ----------------------------------------------------------------------------
-" Lucius:
-" ----------------------------------------------------------------------------
-
-let g:projects = {}
-let g:databases = {}
-command! Tags call lucius#GenerateTags(fnamemodify(bufname('%'), \':p:h'), 0) " current file dir
-command! TagsForce call lucius#GenerateTags(fnamemodify(bufname('%'), \':p:h'), 1) " current file dir, force
-command! TagsCwd call lucius#GenerateTags(getcwd(), 0) " current cwd
-command! TagsCwdForce call lucius#GenerateTags(getcwd(), 1) " cwd, force
-command! -nargs=1 -complete=file Sqlite :call lucius#LoadSqlite(<q-args>)
-command! -nargs=1 -complete=custom,lucius#DatabaseComplete Database :call
-            \ lucius#LoadDatabase(<q-args>)
-command! -nargs=1 -complete=custom,lucius#DatabaseComplete Data :call
-            \ lucius#LoadDatabase(<q-args>)
-command! -nargs=1 -complete=custom,lucius#ProjectComplete Project :call
-            \ lucius#LoadProject(<q-args>)
-command! -nargs=1 -complete=custom,lucius#ProjectComplete Proj :call
-            \ lucius#LoadProject(<q-args>)
-
-noremap <C-f> :call lucius#ToggleSearchHighlighting()<CR>
-nnoremap <F10> :call lucius#ToggleTextWidth()<CR>
-nnoremap <S-F10> :call lucius#ToggleWrap()<CR>
-nnoremap <F11> :call lucius#ToggleSpellCheck()<CR>
-nnoremap <F12> :call lucius#ToggleScrollbars()<CR>
-
-if has("python")
-    command! -range EvalPythonRange call lucius#EvaluateCurrentRange()
-    map <silent> <F5> :EvalPythonRange<CR>
-endif
 
 
 " ----------------------------------------------------------------------------
@@ -530,7 +595,6 @@ let g:sqlutil_align_comma = 1
 let g:sqlutil_align_first_word = 1
 let g:sqlutil_keyword_case = '\L'
 
-
 " ----------------------------------------------------------------------------
 " SuperTab:
 " ----------------------------------------------------------------------------
@@ -538,8 +602,14 @@ let g:sqlutil_keyword_case = '\L'
 let SuperTabDefaultCompletionType = "context"
 let SuperTabContextDefaultCompletionType = "<c-n>"
 let SuperTabContextTextOmniPrecedence = ["&completefunc"]
-au BufEnter *.md,*.txt,*.wiki :let b:SuperTabNoCompleteAfter = g:SuperTabNoCompleteAfter + ['\.', '\*', '-', ')']
+au BufEnter *.md,*.txt,*.wiki :let b:SuperTabNoCompleteAfter = g:SuperTabNoCompleteAfter + ['\.', '\*', '-', ')']                                                                                                  
 
+" ----------------------------------------------------------------------------
+" Flake8-vim
+" ----------------------------------------------------------------------------
+let g:PyFlakeCheckers = 'frosted,pep8'
+let g:PyFlakeDisabledMessages = 'E203,E501,W503'
+let g:PyFlakeMaxLineLength = 88
 
 " ----------------------------------------------------------------------------
 " Syntastic:
@@ -583,6 +653,75 @@ augroup VCSCommand
     au User VCSBufferCreated set bufhidden=wipe
 augroup END
 map <Leader>vd :VCSVimDiff<CR>
+
+" vim-lsp {{{
+function! s:on_lsp_buffer_enabled() abort
+  setlocal omnifunc=lsp#complete
+  if exists('+tagfunc') | setlocal tagfunc=lsp#tagfunc | endif
+  nmap <buffer> gd <plug>(lsp-definition)
+  nmap <buffer> gs <plug>(lsp-document-symbol-search)
+  nmap <buffer> gS <plug>(lsp-workspace-symbol-search)
+  nmap <buffer> gr <plug>(lsp-references)
+  nmap <buffer> gi <plug>(lsp-implementation)
+  nmap <buffer> gt <plug>(lsp-type-definition)
+  nmap <buffer> <leader>rn <plug>(lsp-rename)
+  nmap <buffer> [g <Plug>(lsp-previous-diagnostic)
+  nmap <buffer> ]g <Plug>(lsp-next-diagnostic)
+  nmap <buffer> K <plug>(lsp-hover)
+endfunction
+
+augroup lsp_install
+  autocmd!
+  " call s:on_lsp_buffer_enabled only for languages that has the server registered.
+  autocmd User lsp_buffer_enabled call s:on_lsp_buffer_enabled()
+augroup end
+
+let g:lsp_diagnostics_echo_cursor=1 " echo error for the current line to status
+let g:lsp_diagnostics_enabled=0 " enable reporting of linter errors/warnings, using ALE for now
+let g:lsp_diagnostics_highlights_enabled=1 " disable highlighting of errors since they're flagged with signs
+let g:lsp_diagnostics_signs_enabled=1 " flag errors/warnings in the signs column
+let g:lsp_diagnostics_signs_error = {'text': '✗'}
+let g:lsp_diagnostics_signs_warning = {'text': '!'}
+let g:lsp_diagnostics_virtual_text_enabled=0 " don't show annoying virtual text next to errors
+let g:lsp_document_highlight_enabled=0 " don't highlight the symbol under the cursor
+let g:lsp_fold_enabled=0 " use SimpylFold for (python) folding
+
+
+"cannot get this working
+""===vim-lsp-ultisnips
+"let g:UltiSnipsExpandTrigger="<tab>"
+"let g:UltiSnipsJumpForwardTrigger="<tab>"
+"let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
+""===
+
+" }}}
+
+" vim-lsp-settings {{{
+let g:lsp_settings = {
+  \ 'pyls-all': {
+  \   'workspace_config': {
+  \     'pyls': {
+  \       'configurationSources': ['flake8'],
+  \       'plugins': {
+  \         'jedi': {'enabled': v:true},
+  \         'flake8': {'enabled': v:false},
+  \         'mccabe': {'enabled': v:false},
+  \         'pycodestyle': {'enabled': v:false},
+  \         'pydocstyle': {'enabled': v:false},
+  \         'pyflakes': {'enabled': v:false},
+  \         'pylint': {'enabled': v:false},
+  \         'rope': {'enabled': v:false}
+  \       }
+  \     }
+  \   }
+  \ }}
+
+" Opt out of :LspInstallServer suggestion messages (run :LspStatus to check)
+let g:lsp_settings_enable_suggestions=0
+
+" }}}
+
+" }}}
 
 
 " ============================================================================
@@ -649,9 +788,9 @@ command! -nargs=+ -complete=command GetOutput call GetOutput(<q-args>)
 "  -----------
 let g:netrw_banner = 0
 let g:netrw_liststyle = 3
-let g:netrw_browse_split = 1
+let g:netrw_browse_split = 4
 let g:netrw_altv = 1
-let g:netrw_winsize = 25
+let g:netrw_winsize = 20
 if &diff 
 else
     augroup ProjectDrawer
@@ -696,5 +835,77 @@ if filereadable(expand("~/.vimrc_local"))
 endif
 
 
+" ===== 
+" replace the selected text with ctrl+r
+" ====
 
+" Escape special characters in a string for exact matching.
+" This is useful to copying strings from the file to the search tool
+" Based on this - http://peterodding.com/code/vim/profile/autoload/xolox/escape.vim
+function! EscapeString (string)
+  let string=a:string
+  " Escape regex characters
+  let string = escape(string, '^$.*\/~[]')
+  " Escape the line endings
+  let string = substitute(string, '\n', '\\n', 'g')
+  return string
+endfunction
 
+" Get the current visual block for search and replaces
+" This function passed the visual block through a string escape function
+" Based on this - https://stackoverflow.com/questions/676600/vim-replace-selected-text/677918#677918
+function! GetVisual() range
+  " Save the current register and clipboard
+  let reg_save = getreg('"')
+  let regtype_save = getregtype('"')
+  let cb_save = &clipboard
+  set clipboard&
+
+  " Put the current visual selection in the " register
+  normal! ""gvy
+  let selection = getreg('"')
+
+  " Put the saved registers and clipboards back
+  call setreg('"', reg_save, regtype_save)
+  let &clipboard = cb_save
+
+  "Escape any special characters in the selection
+  let escaped_selection = EscapeString(selection)
+
+  return escaped_selection
+endfunction
+
+" Start the find and replace command across the entire file
+vmap <C-r> <Esc>:%s/<c-r>=GetVisual()<cr>//g<left><left>
+
+" ====== vim-test
+
+let test#python#runner = 'pytest'
+
+let test#strategy = "dispatch"
+
+let test#strategy = {
+  \ 'nearest': 'vimterminal',
+  \ 'file':    'dispatch',
+  \ 'suite':   'dispatch',
+\}
+
+" these "Ctrl mappings" work well when Caps Lock is mapped to Ctrl
+nmap <silent> t<C-n> :TestNearest -v<CR>
+nmap <silent> t<C-f> :TestFile<CR>
+nmap <silent> t<C-s> :TestSuite<CR>
+nmap <silent> t<C-l> :TestLast -v<CR>
+nmap <silent> t<C-g> :TestVisit<CR>
+
+" ====== vim-projectionist
+
+let g:projectionist_heuristics = {
+            \ "*.py|tests/test_*.py" : {
+                \   "*.py": {"alternate": "tests/test_{}.py"},
+                \   "tests/test_*.py": {"alternate": "{}.py"}
+                \}
+            \}
+
+nnoremap <Leader>gt :A<CR>
+nnoremap <Leader>gts :AS<CR>
+" =====
